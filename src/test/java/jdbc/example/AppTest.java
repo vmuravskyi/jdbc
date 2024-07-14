@@ -1,4 +1,4 @@
-package java.jdbc.example;
+package jdbc.example;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
