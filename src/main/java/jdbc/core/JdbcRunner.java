@@ -1,31 +1,17 @@
 package jdbc.core;
 
+import jdbc.core.util.ConnectionManager;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class JdbcRunner {
 
-    public static void main(String[] args) {
-        String url = "jdbc:postgresql://localhost:5432/first_lesson";
-        String username = "";
-        String password = "";
+    public static void main(String[] args) throws SQLException {
 
-        Connection connection = null;
-        try {
-            connection = DriverManager.getConnection(url, username, password);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (Objects.nonNull(connection)) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        Connection connection = ConnectionManager.open();
+        System.out.println(connection.getTransactionIsolation());
+
     }
 
 }
