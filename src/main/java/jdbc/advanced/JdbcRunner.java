@@ -1,4 +1,4 @@
-package jdbc.core;
+package jdbc.advanced;
 
 import jdbc.util.ConnectionManager;
 
@@ -9,17 +9,34 @@ import java.util.List;
 
 public class JdbcRunner {
 
-    // executeUpdate - for insert, update, delete. Returns either (1) the row count for
-    // SQL Data Manipulation Language (DML) statements or (2) 0 for SQL statements that return nothing
-    // executeQuery() - for select, returns resultSet
     public static void main(String[] args) {
-//        Long flightId = 2L;
-//        List<Long> ticketsByFlightId = getTicketsByFlightId(flightId);
-//        System.out.println(ticketsByFlightId);
-
 
         List<Long> ticketsByFlightId = getFlightsBetween(LocalDateTime.of(2023, 7, 1, 0, 0, 0), LocalDateTime.now());
         System.out.println(ticketsByFlightId);
+
+        checkMetadata();
+    }
+
+    private static void checkMetadata() {
+        try (Connection connection = ConnectionManager.open()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet catalogs = metaData.getCatalogs();
+            while (catalogs.next()) {
+                System.out.println(catalogs.getString("TABLE_CAT")); // get parameters from metaData.getCatalogs()
+                ResultSet schemas = metaData.getSchemas();
+                while (schemas.next()) {
+                    System.out.println(schemas.getString("TABLE_SCHEM")); // params from metaData.getSchemas();
+                    ResultSet tables = metaData.getTables(null, null, "%s", null);
+                    while (tables.next()) {
+                        String tableName = tables.getString("TABLE_NAME"); // params from metaData.getTables()
+                        System.out.println(tableName);
+                    }
+                }
+                System.out.println("**************************");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static List<Long> getFlightsBetween(LocalDateTime from, LocalDateTime to) {
@@ -71,33 +88,5 @@ public class JdbcRunner {
         }
         return result;
     }
-
-
-//    public static void main(String[] args) throws SQLException {
-//        String flightId = "2 OR 1 = 1"; // SQL injection in case using createStatement()
-////        String flightId = "2 OR 1 = 1; DROP DATABASE info"; // SQL injection
-//        List<Long> ticketsByFlightId = getTicketsByFlightId(flightId);
-//        System.out.println(ticketsByFlightId);
-//    }
-//
-//
-//    private static List<Long> getTicketsByFlightId(String flightId) {
-//        String sql = """
-//                SELECT id
-//                FROM ticket
-//                WHERE flight_id = %s"""
-//                .formatted(flightId);
-//        List<Long> result = new ArrayList<>();
-//        try (Connection connection = ConnectionManager.open();
-//             Statement statement = connection.createStatement()) {
-//            ResultSet resultSet = statement.executeQuery(sql);
-//            while (resultSet.next()) {
-//                result.add(resultSet.getObject("id", Long.class)); // in case of null
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return result;
-//    }
 
 }

@@ -1,4 +1,4 @@
-package jdbc.core.util;
+package jdbc.util;
 
 import java.io.IOException;
 import java.io.InputStream;

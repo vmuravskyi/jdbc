@@ -1,4 +1,4 @@
-package jdbc.core.util;
+package jdbc.util;
 
 
 import org.slf4j.Logger;
