@@ -12,9 +12,9 @@ public final class ConnectionManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionManager.class);
 
-    private static final String DB_URL = "DB_URL";
-    private static final String DB_USERNAME = "DB_USERNAME";
-    private static final String DB_PASSWORD = "DB_PASSWORD";
+    private static final String DB_URL = "DB.URL";
+    private static final String DB_USERNAME = "DB.USERNAME";
+    private static final String DB_PASSWORD = "DB.PASSWORD";
 
     static {
         // added for older java versions (before 1.8)

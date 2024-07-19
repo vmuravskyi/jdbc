@@ -1,6 +1,6 @@
 package jdbc.advanced;
 
-import jdbc.util.ConnectionManager;
+import jdbc.util.connectio_pool_with_wrapper.ConnectionPool;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ public class BlobRunner {
                 WHERE id = ?
                 """;
 
-        try (Connection connection = ConnectionManager.open()) {
+        try (Connection connection = ConnectionPool.get()) {
             connection.setAutoCommit(false);
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setLong(1, 1);
@@ -57,7 +57,7 @@ public class BlobRunner {
                 SET image = ?
                 WHERE id = ?
                 """;
-        try (Connection connection = ConnectionManager.open()) {
+        try (Connection connection = ConnectionPool.get()) {
             connection.setAutoCommit(false);
 
             PreparedStatement preparedStatement = connection.prepareStatement(sql);

@@ -1,6 +1,7 @@
 package jdbc.advanced;
 
 import jdbc.util.ConnectionManager;
+import jdbc.util.connection_pool_proxy.ConnectionPoolWithProxy;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -14,11 +15,17 @@ public class JdbcRunner {
         List<Long> ticketsByFlightId = getFlightsBetween(LocalDateTime.of(2023, 7, 1, 0, 0, 0), LocalDateTime.now());
         System.out.println(ticketsByFlightId);
 
-        checkMetadata();
+        try {
+            checkMetadata();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            ConnectionPoolWithProxy.closePool();
+        }
     }
 
     private static void checkMetadata() {
-        try (Connection connection = ConnectionManager.open()) {
+        try (Connection connection = ConnectionPoolWithProxy.get()) {
             DatabaseMetaData metaData = connection.getMetaData();
             ResultSet catalogs = metaData.getCatalogs();
             while (catalogs.next()) {
