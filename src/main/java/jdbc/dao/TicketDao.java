@@ -8,6 +8,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 public class TicketDao {
 
@@ -62,6 +65,56 @@ public class TicketDao {
 
     public static TicketDao getInstance() {
         return INSTANCE;
+    }
+
+    public List<TicketEntity> findByFilter(TicketFilter filter) {
+        List<Object> parameters = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
+        if (filter.getPassengerNo() != null) {
+            conditions.add("passenger_no LIKE ?");
+            parameters.add("%" + filter.getPassengerNo() + "%");
+        }
+        if (filter.getPassengerName() != null) {
+            conditions.add("passenger_name = ?");
+            parameters.add(filter.getPassengerName());
+        }
+        if (filter.getFlightId() != null) {
+            conditions.add("flight_id = ?");
+            parameters.add(filter.getFlightId());
+        }
+        if (filter.getSeatNo() != null) {
+            conditions.add("seat_no LIKE ?");
+            parameters.add("%" + filter.getSeatNo() + "%");
+        }
+        if (filter.getCost() != null) {
+            conditions.add("cost = ?");
+            parameters.add(filter.getCost());
+        }
+        parameters.add(filter.getLimit());
+        parameters.add(filter.getOffset());
+
+        String filters = conditions
+                .stream()
+                .collect(joining(" AND ", " WHERE ", " LIMIT ? OFFSET ? "));
+        String query = FIND_ALL + filters;
+
+        // TODO test for empty filters
+
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<TicketEntity> result = new ArrayList<>();
+            while (resultSet.next()) {
+                result.add(buildTicket(resultSet));
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new DaoException("Failed to find tickets with filter", e);
+        }
     }
 
     public List<TicketEntity> findAll() {
