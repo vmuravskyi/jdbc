@@ -4,6 +4,7 @@ import jdbc.dao.TicketDao;
 import jdbc.entity.TicketEntity;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public class DaoRunner {
@@ -23,7 +24,7 @@ public class DaoRunner {
         System.out.println("Created and saved ticket:\n" + savedTicket + "\n");
 
         // get
-        Optional<TicketEntity> optionalTicket = ticketDao.getById(savedTicket.getId());
+        Optional<TicketEntity> optionalTicket = ticketDao.findById(savedTicket.getId());
         System.out.println("Found by id ticket:\n" + optionalTicket + "\n");
 
         // update
@@ -31,12 +32,19 @@ public class DaoRunner {
             ticketEntity.setCost(BigDecimal.valueOf(185.55));
             ticketDao.update(ticketEntity);
         });
-        Optional<TicketEntity> updatedTicket = ticketDao.getById(savedTicket.getId());
+        Optional<TicketEntity> updatedTicket = ticketDao.findById(savedTicket.getId());
         System.out.println("Updated ticket:\n" + updatedTicket + "\n");
 
         // delete
         boolean deleted = ticketDao.delete(savedTicket.getId());
         System.out.println("Deleted ticket:\n" + deleted + "\n");
+
+        // find all
+        List<TicketEntity> allTickets = ticketDao.findAll();
+        System.out.println("Total number of tickets: " + allTickets.size());
+        for (TicketEntity t : allTickets) {
+            System.out.println(t);
+        }
     }
 
 }

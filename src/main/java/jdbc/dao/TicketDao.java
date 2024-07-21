@@ -5,6 +5,8 @@ import jdbc.exception.DaoException;
 import jdbc.util.connectio_pool_with_wrapper.ConnectionPool;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class TicketDao {
@@ -21,6 +23,17 @@ public class TicketDao {
                 cost
             FROM ticket
             WHERE id = ?
+            """;
+
+    private static final String FIND_ALL = """
+            SELECT
+                id,
+                passenger_no,
+                passenger_name,
+                flight_id,
+                seat_no,
+                cost
+            FROM ticket
             """;
 
     private static final String CREATE_SQL = """
@@ -51,7 +64,22 @@ public class TicketDao {
         return INSTANCE;
     }
 
-    public Optional<TicketEntity> getById(Long id) {
+    public List<TicketEntity> findAll() {
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<TicketEntity> result = new ArrayList<>();
+            while (resultSet.next()) {
+                TicketEntity ticket = buildTicket(resultSet);
+                result.add(ticket);
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new DaoException("Failed to find all tickets", e);
+        }
+    }
+
+    public Optional<TicketEntity> findById(Long id) {
         try (Connection connection = ConnectionPool.get();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
             preparedStatement.setLong(1, id);
@@ -59,13 +87,7 @@ public class TicketDao {
             ResultSet resultSet = preparedStatement.executeQuery();
             TicketEntity ticketEntity = null;
             if (resultSet.next()) {
-                ticketEntity = new TicketEntity()
-                        .setId(id)
-                        .setPassengerNo(resultSet.getString("passenger_no"))
-                        .setPassengerName(resultSet.getString("passenger_name"))
-                        .setFlightId(resultSet.getLong("flight_id"))
-                        .setSeatNo(resultSet.getString("seat_no"))
-                        .setCost(resultSet.getBigDecimal("cost"));
+                ticketEntity = buildTicket(resultSet);
             }
             return Optional.ofNullable(ticketEntity);
         } catch (SQLException e) {
@@ -119,6 +141,16 @@ public class TicketDao {
         } catch (SQLException e) {
             throw new DaoException("Failed to delete ticket", e);
         }
+    }
+
+    private TicketEntity buildTicket(ResultSet resultSet) throws SQLException {
+        return new TicketEntity()
+                .setId(resultSet.getLong("id"))
+                .setPassengerNo(resultSet.getString("passenger_no"))
+                .setPassengerName(resultSet.getString("passenger_name"))
+                .setFlightId(resultSet.getLong("flight_id"))
+                .setSeatNo(resultSet.getString("seat_no"))
+                .setCost(resultSet.getBigDecimal("cost"));
     }
 
 }
