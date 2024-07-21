@@ -93,12 +93,17 @@ public class TicketDao {
         parameters.add(filter.getLimit());
         parameters.add(filter.getOffset());
 
-        String filters = conditions
-                .stream()
-                .collect(joining(" AND ", " WHERE ", " LIMIT ? OFFSET ? "));
-        String query = FIND_ALL + filters;
+        // Build the SQL query
+        StringBuilder queryBuilder = new StringBuilder(FIND_ALL);
 
-        // TODO test for empty filters
+        if (!conditions.isEmpty()) {
+            queryBuilder.append(" WHERE ");
+            queryBuilder.append(String.join(" AND ", conditions));
+        }
+
+        queryBuilder.append(" LIMIT ? OFFSET ?");
+
+        String query = queryBuilder.toString();
 
         try (Connection connection = ConnectionPool.get();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
