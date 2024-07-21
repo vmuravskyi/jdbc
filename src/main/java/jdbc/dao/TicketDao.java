@@ -97,14 +97,11 @@ public class TicketDao {
             queryBuilder.append(" WHERE ");
             queryBuilder.append(String.join(" AND ", conditions));
         }
-
         queryBuilder.append(" LIMIT ? OFFSET ?");
 
         String query = queryBuilder.toString();
-
         try (Connection connection = ConnectionPool.get();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
             for (int i = 0; i < parameters.size(); i++) {
                 preparedStatement.setObject(i + 1, parameters.get(i));
             }
