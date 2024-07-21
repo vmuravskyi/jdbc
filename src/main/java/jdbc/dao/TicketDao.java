@@ -1,5 +1,6 @@
 package jdbc.dao;
 
+import jdbc.entity.FlightEntity;
 import jdbc.entity.TicketEntity;
 import jdbc.exception.DaoException;
 import jdbc.util.connectio_pool_with_wrapper.ConnectionPool;
@@ -15,25 +16,43 @@ public class TicketDao {
 
     private static final String FIND_BY_ID = """
             SELECT
-                id,
+                ticket.id,
                 passenger_no,
                 passenger_name,
                 flight_id,
                 seat_no,
-                cost
+                cost,
+                f.flight_no,
+                f.status,
+                f.aircraft_id,
+                f.arrival_airport_code,
+                f.arrival_date,
+                f.departure_airport_code,
+                f.departure_date
             FROM ticket
-            WHERE id = ?
+            JOIN flight f
+                ON ticket.flight_id = f.id
+            WHERE ticket.id = ?
             """;
 
     private static final String FIND_ALL = """
             SELECT
-                id,
+                ticket.id,
                 passenger_no,
                 passenger_name,
                 flight_id,
                 seat_no,
-                cost
+                cost,
+                f.flight_no,
+                f.status,
+                f.aircraft_id,
+                f.arrival_airport_code,
+                f.arrival_date,
+                f.departure_airport_code,
+                f.departure_date
             FROM ticket
+            JOIN flight f
+                ON ticket.flight_id = f.id
             """;
 
     private static final String CREATE_SQL = """
@@ -153,7 +172,7 @@ public class TicketDao {
              PreparedStatement preparedStatement = connection.prepareStatement(CREATE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, ticketEntity.getPassengerNo());
             preparedStatement.setString(2, ticketEntity.getPassengerName());
-            preparedStatement.setLong(3, ticketEntity.getFlightId());
+            preparedStatement.setLong(3, ticketEntity.getFlight().getId());
             preparedStatement.setString(4, ticketEntity.getSeatNo());
             preparedStatement.setBigDecimal(5, ticketEntity.getCost());
 
@@ -173,7 +192,7 @@ public class TicketDao {
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
             preparedStatement.setString(1, ticketEntity.getPassengerNo());
             preparedStatement.setString(2, ticketEntity.getPassengerName());
-            preparedStatement.setLong(3, ticketEntity.getFlightId());
+            preparedStatement.setLong(3, ticketEntity.getFlight().getId());
             preparedStatement.setString(4, ticketEntity.getSeatNo());
             preparedStatement.setBigDecimal(5, ticketEntity.getCost());
 
@@ -197,11 +216,20 @@ public class TicketDao {
     }
 
     private TicketEntity buildTicket(ResultSet resultSet) throws SQLException {
+        FlightEntity flightEntity = new FlightEntity()
+                .setId(resultSet.getLong("flight_id"))
+                .setFlightNo(resultSet.getString("flight_no"))
+                .setDepartureDate(resultSet.getTimestamp("departure_date").toLocalDateTime())
+                .setDepartureAirportCode(resultSet.getString("departure_airport_code"))
+                .setArrivalDate(resultSet.getTimestamp("arrival_date").toLocalDateTime())
+                .setArrivalAirportCode(resultSet.getString("arrival_airport_code"))
+                .setAircraftId(resultSet.getInt("aircraft_id"))
+                .setStatus(resultSet.getString("status"));
         return new TicketEntity()
                 .setId(resultSet.getLong("id"))
                 .setPassengerNo(resultSet.getString("passenger_no"))
                 .setPassengerName(resultSet.getString("passenger_name"))
-                .setFlightId(resultSet.getLong("flight_id"))
+                .setFlight(flightEntity)
                 .setSeatNo(resultSet.getString("seat_no"))
                 .setCost(resultSet.getBigDecimal("cost"));
     }

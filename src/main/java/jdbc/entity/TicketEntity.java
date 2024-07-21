@@ -8,7 +8,7 @@ public class TicketEntity {
     private Long id;
     private String passengerNo;
     private String passengerName;
-    private Long flightId;
+    private FlightEntity flight;
     private String seatNo;
     private BigDecimal cost;
 
@@ -16,11 +16,11 @@ public class TicketEntity {
         // default constructor
     }
 
-    public TicketEntity(Long id, String passengerNo, String passengerName, Long flightId, String seatNo, BigDecimal cost) {
+    public TicketEntity(Long id, String passengerNo, String passengerName, FlightEntity flight, String seatNo, BigDecimal cost) {
         this.id = id;
         this.passengerNo = passengerNo;
         this.passengerName = passengerName;
-        this.flightId = flightId;
+        this.flight = flight;
         this.seatNo = seatNo;
         this.cost = cost;
     }
@@ -52,12 +52,12 @@ public class TicketEntity {
         return this;
     }
 
-    public Long getFlightId() {
-        return flightId;
+    public FlightEntity getFlight() {
+        return flight;
     }
 
-    public TicketEntity setFlightId(Long flightId) {
-        this.flightId = flightId;
+    public TicketEntity setFlight(FlightEntity flight) {
+        this.flight = flight;
         return this;
     }
 
@@ -91,17 +91,35 @@ public class TicketEntity {
 
         TicketEntity that = (TicketEntity) o;
 
-        return Objects.equals(id, that.id) && Objects.equals(passengerNo, that.passengerNo) && Objects.equals(passengerName, that.passengerName) && Objects.equals(flightId, that.flightId) && Objects.equals(seatNo, that.seatNo) && Objects.equals(cost, that.cost);
+        return Objects.equals(id, that.id) &&
+               Objects.equals(passengerNo, that.passengerNo) &&
+               Objects.equals(passengerName, that.passengerName) &&
+               Objects.equals(flight, that.flight) &&
+               Objects.equals(seatNo, that.seatNo) &&
+               Objects.equals(cost, that.cost);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, passengerNo, passengerName, flightId, seatNo, cost);
+        return Objects.hash(
+                id,
+                passengerNo,
+                passengerName,
+                flight,
+                seatNo,
+                cost);
     }
 
     @Override
     public String toString() {
-        return "TicketEntity{" + "id=" + id + ", passenger_no='" + passengerNo + '\'' + ", passenger_name='" + passengerName + '\'' + ", flight_id=" + flightId + ", seat_no='" + seatNo + '\'' + ", cost=" + cost + '}';
+        return "TicketEntity{" +
+               "id=" + id +
+               ", passengerNo='" + passengerNo + '\'' +
+               ", passengerName='" + passengerName + '\'' +
+               ", flight=" + flight +
+               ", seatNo='" + seatNo + '\'' +
+               ", cost=" + cost +
+               '}';
     }
 
 }
