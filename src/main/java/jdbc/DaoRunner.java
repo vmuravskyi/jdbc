@@ -12,13 +12,13 @@ public class DaoRunner {
 
     public static void main(String[] args) {
         TicketFilter ticketFilter = TicketFilter.builder()
-//                .passengerNo("SS988D")
-//                .passengerName("Michael Johnson")
-//                .flightId(1L)
-//                .seatNo("B2")
-//                .cost(BigDecimal.valueOf(175.00))
+                .passengerNo("SS988D")
+                .passengerName("Michael Johnson")
+                .flightId(1L)
+                .seatNo("B2")
+                .cost(BigDecimal.valueOf(175.00))
                 .limit(10)
-                .offset(2)
+                .offset(0)
                 .build();
 
         TicketDao ticketDao = TicketDao.getInstance();
@@ -27,6 +27,12 @@ public class DaoRunner {
         System.out.println(all.size());
         System.out.println(all);
 
+//        crud();
+
+    }
+
+    private static void crud() {
+        TicketDao ticketDao = TicketDao.getInstance();
 
         // create and save
         TicketEntity ticket = new TicketEntity()

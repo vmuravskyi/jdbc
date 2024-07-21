@@ -111,6 +111,7 @@ public class TicketDao {
             for (int i = 0; i < parameters.size(); i++) {
                 preparedStatement.setObject(i + 1, parameters.get(i));
             }
+            System.out.println(preparedStatement); // print final query
             ResultSet resultSet = preparedStatement.executeQuery();
             List<TicketEntity> result = new ArrayList<>();
             while (resultSet.next()) {
