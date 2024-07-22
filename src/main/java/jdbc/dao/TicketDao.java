@@ -1,6 +1,5 @@
 package jdbc.dao;
 
-import jdbc.entity.FlightEntity;
 import jdbc.entity.TicketEntity;
 import jdbc.exception.DaoException;
 import jdbc.util.connectio_pool_with_wrapper.ConnectionPool;
@@ -10,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class TicketDao {
+public class TicketDao implements Dao<Long, TicketEntity> {
 
     private static final TicketDao INSTANCE = new TicketDao();
 
@@ -75,12 +74,98 @@ public class TicketDao {
             WHERE id = ?
             """;
 
+    private final FlightDao flightDao = FlightDao.getInstance();
+
     private TicketDao() {
         // private constructor
     }
 
     public static TicketDao getInstance() {
         return INSTANCE;
+    }
+
+    @Override
+    public TicketEntity save(TicketEntity ticketEntity) {
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(CREATE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setString(1, ticketEntity.getPassengerNo());
+            preparedStatement.setString(2, ticketEntity.getPassengerName());
+            preparedStatement.setLong(3, ticketEntity.getFlight().getId());
+            preparedStatement.setString(4, ticketEntity.getSeatNo());
+            preparedStatement.setBigDecimal(5, ticketEntity.getCost());
+
+            preparedStatement.executeUpdate();
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                ticketEntity.setId(generatedKeys.getLong("id"));
+            }
+            return ticketEntity;
+        } catch (SQLException e) {
+            throw new DaoException("Failed to save ticket", e);
+        }
+    }
+
+    @Override
+    public TicketEntity update(TicketEntity ticketEntity) {
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
+            preparedStatement.setString(1, ticketEntity.getPassengerNo());
+            preparedStatement.setString(2, ticketEntity.getPassengerName());
+            preparedStatement.setLong(3, ticketEntity.getFlight().getId());
+            preparedStatement.setString(4, ticketEntity.getSeatNo());
+            preparedStatement.setBigDecimal(5, ticketEntity.getCost());
+
+            preparedStatement.setLong(6, ticketEntity.getId());
+            preparedStatement.executeUpdate();
+            return ticketEntity;
+        } catch (SQLException e) {
+            throw new DaoException("Failed to updated ticket", e);
+        }
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SQL)) {
+            preparedStatement.setLong(1, id);
+            int result = preparedStatement.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            throw new DaoException("Failed to delete ticket", e);
+        }
+    }
+
+    @Override
+    public Optional<TicketEntity> findById(Long id) {
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            TicketEntity ticketEntity = null;
+            if (resultSet.next()) {
+                ticketEntity = buildTicket(resultSet);
+            }
+            return Optional.ofNullable(ticketEntity);
+        } catch (SQLException e) {
+            throw new DaoException(String.format("Failed to get ticket by id [%s]", id), e);
+        }
+    }
+
+    @Override
+    public List<TicketEntity> findAll() {
+        try (Connection connection = ConnectionPool.get();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<TicketEntity> result = new ArrayList<>();
+            while (resultSet.next()) {
+                TicketEntity ticket = buildTicket(resultSet);
+                result.add(ticket);
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new DaoException("Failed to find all tickets", e);
+        }
     }
 
     public List<TicketEntity> findByFilter(TicketFilter filter) {
@@ -136,100 +221,15 @@ public class TicketDao {
         }
     }
 
-    public List<TicketEntity> findAll() {
-        try (Connection connection = ConnectionPool.get();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL)) {
-            ResultSet resultSet = preparedStatement.executeQuery();
-            List<TicketEntity> result = new ArrayList<>();
-            while (resultSet.next()) {
-                TicketEntity ticket = buildTicket(resultSet);
-                result.add(ticket);
-            }
-            return result;
-        } catch (SQLException e) {
-            throw new DaoException("Failed to find all tickets", e);
-        }
-    }
-
-    public Optional<TicketEntity> findById(Long id) {
-        try (Connection connection = ConnectionPool.get();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
-            preparedStatement.setLong(1, id);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-            TicketEntity ticketEntity = null;
-            if (resultSet.next()) {
-                ticketEntity = buildTicket(resultSet);
-            }
-            return Optional.ofNullable(ticketEntity);
-        } catch (SQLException e) {
-            throw new DaoException(String.format("Failed to get ticket by id [%s]", id), e);
-        }
-    }
-
-    public TicketEntity save(TicketEntity ticketEntity) {
-        try (Connection connection = ConnectionPool.get();
-             PreparedStatement preparedStatement = connection.prepareStatement(CREATE_SQL, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, ticketEntity.getPassengerNo());
-            preparedStatement.setString(2, ticketEntity.getPassengerName());
-            preparedStatement.setLong(3, ticketEntity.getFlight().getId());
-            preparedStatement.setString(4, ticketEntity.getSeatNo());
-            preparedStatement.setBigDecimal(5, ticketEntity.getCost());
-
-            preparedStatement.executeUpdate();
-            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                ticketEntity.setId(generatedKeys.getLong("id"));
-            }
-            return ticketEntity;
-        } catch (SQLException e) {
-            throw new DaoException("Failed to save ticket", e);
-        }
-    }
-
-    public TicketEntity update(TicketEntity ticketEntity) {
-        try (Connection connection = ConnectionPool.get();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
-            preparedStatement.setString(1, ticketEntity.getPassengerNo());
-            preparedStatement.setString(2, ticketEntity.getPassengerName());
-            preparedStatement.setLong(3, ticketEntity.getFlight().getId());
-            preparedStatement.setString(4, ticketEntity.getSeatNo());
-            preparedStatement.setBigDecimal(5, ticketEntity.getCost());
-
-            preparedStatement.setLong(6, ticketEntity.getId());
-            preparedStatement.executeUpdate();
-            return ticketEntity;
-        } catch (SQLException e) {
-            throw new DaoException("Failed to updated ticket", e);
-        }
-    }
-
-    public boolean delete(Long id) {
-        try (Connection connection = ConnectionPool.get();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SQL)) {
-            preparedStatement.setLong(1, id);
-            int result = preparedStatement.executeUpdate();
-            return result > 0;
-        } catch (SQLException e) {
-            throw new DaoException("Failed to delete ticket", e);
-        }
-    }
-
     private TicketEntity buildTicket(ResultSet resultSet) throws SQLException {
-        FlightEntity flightEntity = new FlightEntity()
-                .setId(resultSet.getLong("flight_id"))
-                .setFlightNo(resultSet.getString("flight_no"))
-                .setDepartureDate(resultSet.getTimestamp("departure_date").toLocalDateTime())
-                .setDepartureAirportCode(resultSet.getString("departure_airport_code"))
-                .setArrivalDate(resultSet.getTimestamp("arrival_date").toLocalDateTime())
-                .setArrivalAirportCode(resultSet.getString("arrival_airport_code"))
-                .setAircraftId(resultSet.getInt("aircraft_id"))
-                .setStatus(resultSet.getString("status"));
         return new TicketEntity()
                 .setId(resultSet.getLong("id"))
                 .setPassengerNo(resultSet.getString("passenger_no"))
                 .setPassengerName(resultSet.getString("passenger_name"))
-                .setFlight(flightEntity)
+                .setFlight(flightDao.findById(
+                        resultSet.getLong("flight_id"),
+                        resultSet.getStatement().getConnection()
+                ).orElse(null))
                 .setSeatNo(resultSet.getString("seat_no"))
                 .setCost(resultSet.getBigDecimal("cost"));
     }

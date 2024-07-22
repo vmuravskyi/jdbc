@@ -1,7 +1,9 @@
 package jdbc;
 
+import jdbc.dao.FlightDao;
 import jdbc.dao.TicketDao;
 import jdbc.dao.TicketFilter;
+import jdbc.entity.FlightEntity;
 import jdbc.entity.TicketEntity;
 
 import java.math.BigDecimal;
@@ -11,6 +13,9 @@ import java.util.Optional;
 public class DaoRunner {
 
     public static void main(String[] args) {
+
+//        Optional<FlightEntity> flightEntity = FlightDao.getInstance().findById(1L);
+//        System.out.println(flightEntity);
 
         Optional<TicketEntity> ticket = TicketDao.getInstance().findById(78L);
         System.out.println(ticket);
